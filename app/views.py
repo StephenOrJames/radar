@@ -8,19 +8,19 @@ def home():
     return render_template("index.html")
 
 
-@app.route("/airport/<icao>")
-def airport(icao):
+@app.route("/airport/<code>")
+def airport(code):
     """Given an airport's ICAO code,
     returns its coordinates.
     """
 
-    coordinates = utils.get_airport_coordinates(icao)
-    if coordinates is None:
+    data = utils.get_airport_coordinates(code)
+    if data is None:
         return jsonify(status="Not found"), 404
 
-    weather = utils.get_airport_weather(icao)
+    data["weather"] = utils.get_airport_weather(data["icao"])
 
-    return jsonify(status="Success", coordinates=coordinates, weather=weather)
+    return jsonify(status="Success", **data)
 
 
 @app.route("/aircraft/<latitude>/<longitude>/<int:distance>")

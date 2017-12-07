@@ -28,7 +28,7 @@ function setup() {
     color: color(81, 255, 13),
     colorInvalid: color("red"),  // used to indicate invalid airports
     distance: 100,  // max aircraft distance (nautical miles)
-    length: -(height / 2) + 20,  // length of radar arm
+    length: -(height / 2) + 40,  // length of radar arm
   };
   for (var i = 0; i < radar.blip.width; ++i) {
     for (var j = 0; j < radar.blip.height; ++j) {
@@ -53,19 +53,24 @@ function draw() {
   
   // Outer radar circle
   fill(81, 255, 13, 4);
-  ellipse(width / 2, height / 2, width - 40, height - 40);
+  ellipse(width / 2, height / 2, width - 80, height - 80);
 
   // Airport information box
   fill(airport.valid ? radar.color : radar.colorInvalid);
   noStroke();
   textSize(50);
-  text(airport.icao, 25, 60);
+  text(airport.icao, 25, 80);
   textSize(20);
-  text(radar.distance + "nm", 25, 90);
+  text(radar.distance + "nm", 25, 110);
   if (airport.valid) {
     text(airport.wind.padStart(12), width - 170, 40);
     text(airport.temperature.padStart(8), width - 120, 70);
+    textSize(20);
+    text(airport.name, 25, 30);
   }
+  textSize(20);
+  fill("yellow");
+  text(airport._nextIcao, 25, height - 25);
 
   // Show aircraft
   var blips = [];
@@ -108,10 +113,10 @@ function draw() {
 
 function keyTyped() {
   if (keyCode === ENTER) {
-    loadAirport(airport._nextIcao.toUpperCase());
+    loadAirport(airport._nextIcao);
     airport._nextIcao = "";
   } else {
-    airport._nextIcao += key;
+    airport._nextIcao += key.toUpperCase();
   }
 }
 
@@ -130,14 +135,16 @@ function loadAirport(icao) {
   fetch("/airport/" + icao)
   .then((response) => response.json())
   .then(function (json) {
-    airport.icao = icao;
     if (json.status === "Success") {
+      airport.icao = json.icao;
+      airport.name = json.name;
       airport.latitude = json.coordinates.latitude;
       airport.longitude = json.coordinates.longitude;
       airport.temperature = json.weather.temperature;
       airport.wind = json.weather.wind;
       airport.valid = true;
     } else {
+      airport.icao = icao;
       airport.valid = false;
     }
   });

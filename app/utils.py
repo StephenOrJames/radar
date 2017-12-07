@@ -43,11 +43,15 @@ def distance_between(coord1, coord2):
     ))
 
 
-def get_airport_coordinates(icao):
+def get_airport_coordinates(code):
     """Given an airport's ICAO code, returns its coordinates."""
 
     url = "https://openflights.org/php/apsearch.php"
-    post_data = {"icao": icao}
+    post_data = {}
+    if len(code) == 3:
+        post_data["iata"] = code
+    else:
+        post_data["icao"] = code
     request = Request(url, urlencode(post_data).encode())
     with urlopen(request) as response:
         data = json.loads(response.read().decode())
@@ -56,9 +60,16 @@ def get_airport_coordinates(icao):
     if not airports:
         return None
 
+    airport = airports[0]
+
     return {
-        "latitude": float(airports[0]["y"]),
-        "longitude": float(airports[0]["x"]),
+        "name": airport["name"],
+        "iata": airport["iata"],
+        "icao": airport["icao"],
+        "coordinates": {
+            "latitude": float(airport["y"]),
+            "longitude": float(airport["x"]),
+        },
     }
 
 
