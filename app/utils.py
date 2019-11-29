@@ -54,12 +54,11 @@ def get_airport_by_code(code):
 
     code_type = "iata" if len(code) == 3 else "icao"
     response = requests.post(AIRPORT_SEARCH_URL, data={code_type: code})
-    airports = response.json()["airports"]
-    airport = airports[0] if airports else None
-
-    if airport is None:
+    airports = response.json().get("airports")
+    if airports is None:
         return None
 
+    airport = airports[0]
     return {
         "name": airport["name"],
         "iata": airport["iata"],
