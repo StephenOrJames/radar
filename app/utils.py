@@ -94,7 +94,7 @@ def get_nearby_aircraft(airport_coords, max_distance):
     # API does not support wrapping across the 180th meridian.
     # We'd need to do that manually.
     use_bounding_box = (
-        bounding_box["lomin"] >= -180 and bounding_box["lomax"] <= 180
+        bounding_box["lomin"] > -180 and bounding_box["lomax"] < 180
     )
 
     response = requests.get(
@@ -102,6 +102,8 @@ def get_nearby_aircraft(airport_coords, max_distance):
         params=bounding_box if use_bounding_box else {},
     )
     aircraft = response.json()
+    if aircraft["states"] is None:
+        return []
 
     nearby_aircraft = []
     for state in aircraft["states"]:
