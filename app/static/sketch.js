@@ -1,7 +1,6 @@
-var airport;
-var aircraft;
-var radar;
-
+let airport;
+let aircraft;
+let radar;
 
 function setup() {
   createCanvas(815, 815);
@@ -30,8 +29,8 @@ function setup() {
     distance: 100,  // max aircraft distance (nautical miles)
     length: -(height / 2) + 40,  // length of radar arm
   };
-  for (var i = 0; i < radar.blip.width; ++i) {
-    for (var j = 0; j < radar.blip.height; ++j) {
+  for (let i = 0; i < radar.blip.width; ++i) {
+    for (let j = 0; j < radar.blip.height; ++j) {
       radar.blip.set(i, j, radar.color);
     }
   }
@@ -61,7 +60,7 @@ function draw() {
   textSize(50);
   text(airport.icao, 25, 80);
   textSize(20);
-  text(radar.distance + "nm", 25, 110);
+  text(radar.distance + "NM", 25, 110);
   if (airport.valid) {
     text(airport.wind.padStart(12), width - 170, 40);
     text(airport.temperature.padStart(8), width - 120, 70);
@@ -73,21 +72,20 @@ function draw() {
   text(airport._nextIcao, 25, height - 25);
 
   // Show aircraft
-  var blips = [];
-  for (var a of aircraft.current) {
-    if (a.angle <= radar.angle) {
+  const blips = [];
+  for (const a of aircraft.current) {
+    if (a.angle <= radar.angle && a.distance <= radar.distance) {
       drawBlip(a.angle, a.distance);
       blips.push(a.callsign + " " + a.angle + " " + a.distance);
     }
   }
-  for (var a of aircraft.last) {
-    if (a.angle >= radar.angle) {
+  for (const a of aircraft.last) {
+    if (a.angle >= radar.angle && a.distance <= radar.distance) {
       drawBlip(a.angle, a.distance);
       blips.push(a.callsign + " " + a.angle + " " + a.distance);
     }
   }
   if (blips.toString() !== radar._blips.toString()) {
-    print(blips);
     radar._blips = blips;
   }
 
@@ -111,23 +109,30 @@ function draw() {
   }
 }
 
-function keyTyped() {
+function keyPressed() {
   if (keyCode === ENTER) {
     loadAirport(airport._nextIcao);
     airport._nextIcao = "";
-  } else {
-    airport._nextIcao += key.toUpperCase();
+  } else if (keyCode === BACKSPACE) {
+    airport._nextIcao = airport._nextIcao.slice(0, -1);
+  } else if (("A" <= key && key <= "Z") || ("0" <= key && "9" <= key)) {
+    airport._nextIcao += key;
   }
 }
 
 function mouseWheel(event) {
-  var delta = event.delta;
+  const zoomOut = event.delta > 0;
+  const zoomDelta = (radar.distance >= 4500) ? 25
+                  : (radar.distance >= 1500) ? 20
+                  : (radar.distance >= 500) ? 10
+                  : (radar.distance >= 10) ? 5
+                  : 1;
 
-  if (delta > 0) {
-    radar.distance += 5;
-  }
-  if (delta < 0) {
-    radar.distance = Math.max(5, radar.distance - 5);
+  if (zoomOut) {
+    // 11000NM is slightly more than half the circumference of earth.
+    radar.distance = Math.min(11000, radar.distance + zoomDelta);
+  } else {
+    radar.distance = Math.max(2, radar.distance - zoomDelta);
   }
 }
 
