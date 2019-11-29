@@ -82,7 +82,25 @@ def get_airport_weather(icao):
 
 
 def get_nearby_aircraft(airport_coords, max_distance):
-    response = requests.get(AIRCRAFT_STATES_URL)
+    # 1 degree is approx. 60nm, so overestimate for completeness.
+    degrees_delta = max_distance / 58
+    bounding_box = {
+        "lamin": airport_coords[0] - degrees_delta,
+        "lamax": airport_coords[0] + degrees_delta,
+        "lomin": airport_coords[1] - degrees_delta,
+        "lomax": airport_coords[1] + degrees_delta,
+    }
+
+    # API does not support wrapping across the 180th meridian.
+    # We'd need to do that manually.
+    use_bounding_box = (
+        bounding_box["lomin"] >= -180 and bounding_box["lomax"] <= 180
+    )
+
+    response = requests.get(
+        AIRCRAFT_STATES_URL,
+        params=bounding_box if use_bounding_box else {},
+    )
     aircraft = response.json()
 
     nearby_aircraft = []
