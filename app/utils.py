@@ -43,8 +43,8 @@ def distance_between(coord1, coord2):
     ))
 
 
-def get_airport_coordinates(code):
-    """Given an airport's ICAO code, returns its coordinates."""
+def get_airport_by_code(code):
+    """Return the airport's name, IATA code ICAO code, and coordinates."""
 
     url = "https://openflights.org/php/apsearch.php"
     post_data = {}
@@ -61,7 +61,6 @@ def get_airport_coordinates(code):
         return None
 
     airport = airports[0]
-
     return {
         "name": airport["name"],
         "iata": airport["iata"],
