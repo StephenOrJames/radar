@@ -87,11 +87,12 @@ def get_nearby_aircraft(airport_coords, max_distance):
 
     nearby_aircraft = []
     for state in aircraft["states"]:
-        if state[5] is None or state[6] is None:
-            continue
-
         aircraft_lat = state[6]
         aircraft_lon = state[5]
+
+        if aircraft_lat is None or aircraft_lon is None:
+            continue
+
         aircraft_coords = (aircraft_lat, aircraft_lon)
         aircraft_distance = distance_between(aircraft_coords, airport_coords)
         if aircraft_distance > max_distance:
