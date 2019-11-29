@@ -1,11 +1,13 @@
-import json
 import math
-from urllib.parse import urlencode
-from urllib.request import Request, urlopen
+
+import requests
 
 
-# TODO: move URL variables up here as well
 EARTH_RADIUS_NM = 3440 
+
+AIRCRAFT_STATES_URL = "https://opensky-network.org/api/states/all"
+AIRPORT_SEARCH_URL = "https://openflights.org/php/apsearch.php"
+WEATHER_REPORT_URL = "https://aw.stephenorjames.com/api/retrieve/report/{icao}"
 
 
 def angle_between(dst_coord, src_coord):
@@ -46,21 +48,14 @@ def distance_between(coord1, coord2):
 def get_airport_by_code(code):
     """Return the airport's name, IATA code ICAO code, and coordinates."""
 
-    url = "https://openflights.org/php/apsearch.php"
-    post_data = {}
-    if len(code) == 3:
-        post_data["iata"] = code
-    else:
-        post_data["icao"] = code
-    request = Request(url, urlencode(post_data).encode())
-    with urlopen(request) as response:
-        data = json.loads(response.read().decode())
-    airports = data["airports"]
+    code_type = "iata" if len(code) == 3 else "icao"
+    response = requests.post(AIRPORT_SEARCH_URL, data={code_type: code})
+    airports = response.json()["airports"]
+    airport = airports[0] if airports else None
 
-    if not airports:
+    if airport is None:
         return None
 
-    airport = airports[0]
     return {
         "name": airport["name"],
         "iata": airport["iata"],
@@ -77,9 +72,8 @@ def get_airport_weather(icao):
     returns some weather information about the location.
     """
 
-    url = "https://aw.stephenorjames.com/api/retrieve/report/%s" % icao
-    with urlopen(url) as response:
-        data = json.loads(response.read().decode())
+    response = requests.get(WEATHER_REPORT_URL.format(icao=icao))
+    data = response.json()
 
     return {
         "temperature": data["temperature"]["raw"],
@@ -88,12 +82,11 @@ def get_airport_weather(icao):
 
 
 def get_nearby_aircraft(airport_coords, max_distance):
-    url = "https://opensky-network.org/api/states/all"
-    with urlopen(url) as response:
-        response_json = json.loads(response.read().decode())
+    response = requests.get(AIRCRAFT_STATES_URL)
+    aircraft = response.json()
 
     nearby_aircraft = []
-    for state in response_json["states"]:
+    for state in aircraft["states"]:
         if state[5] is None or state[6] is None:
             continue
 
