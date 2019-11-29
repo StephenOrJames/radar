@@ -62,7 +62,7 @@ function draw() {
   textSize(20);
   text(radar.distance + "NM", 25, 110);
   if (airport.valid) {
-    text(airport.wind.padStart(12), width - 170, 40);
+    text(airport.wind.padStart(15), width - 200, 40);
     text(airport.temperature.padStart(8), width - 120, 70);
     textSize(20);
     text(airport.name, 25, 30);
