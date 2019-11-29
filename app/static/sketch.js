@@ -122,11 +122,9 @@ function keyPressed() {
 
 function mouseWheel(event) {
   const zoomOut = event.delta > 0;
-  const zoomDelta = (radar.distance >= 4500) ? 25
-                  : (radar.distance >= 1500) ? 20
-                  : (radar.distance >= 500) ? 10
-                  : (radar.distance >= 10) ? 5
-                  : 1;
+
+  const logZoomDelta = Math.ceil(4 * Math.log(radar.distance) / 5) * 5;
+  const zoomDelta = radar.distance < 20 ? 1 : logZoomDelta;
 
   if (zoomOut) {
     // 11000NM is slightly more than half the circumference of earth.
@@ -180,20 +178,21 @@ function drawBlip(angle, distance) {
 }
 
 function setAtcFeeds(feeds) {
-  const list = document.querySelector('#atc');
-  list.innerHTML =
+  const atcFeeds = document.querySelector('#atc-feeds');
+  atcFeeds.innerHTML =
     '<strong>ATC feeds by <a href="https://liveatc.net">LiveATC.net</a></strong>';
 
   for (const feed of feeds) {
     const text = document.createTextNode(feed.title);
-    const br = document.createElement('br');
+    const caption = document.createElement('figcaption');
+    caption.appendChild(text);
     const audio = document.createElement('audio');
     audio.setAttribute('controls', '');
+    audio.setAttribute('preload', 'none');
     audio.setAttribute('src', feed.url);
-    const item = document.createElement('li');
-    item.appendChild(text);
-    item.appendChild(br);
-    item.appendChild(audio);
-    list.appendChild(item);
+    const figure = document.createElement('figure');
+    figure.appendChild(caption);
+    figure.appendChild(audio);
+    atcFeeds.appendChild(figure);
   }
 }
