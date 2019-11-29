@@ -1,4 +1,5 @@
 import math
+import re
 
 import requests
 
@@ -7,7 +8,10 @@ EARTH_RADIUS_NM = 3440
 
 AIRCRAFT_STATES_URL = "https://opensky-network.org/api/states/all"
 AIRPORT_SEARCH_URL = "https://openflights.org/php/apsearch.php"
+ATC_FEEDS_URL = "https://m.liveatc.net/feeds/?icao={icao}"
 WEATHER_REPORT_URL = "https://aw.stephenorjames.com/api/retrieve/report/{icao}"
+
+USER_AGENT_HEADER = "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"
 
 
 def angle_between(dst_coord, src_coord):
@@ -129,3 +133,18 @@ def get_nearby_aircraft(airport_coords, max_distance):
     nearby_aircraft.sort(key=lambda a: a["distance"])
 
     return nearby_aircraft
+
+
+def get_airport_atc(icao):
+    response = requests.get(
+        ATC_FEEDS_URL.format(icao=icao),
+        headers={"User-Agent": USER_AGENT_HEADER},
+    )
+    feeds = re.findall(
+        '<a href="(http://d.liveatc.net/.+)">(.+)</a>',
+        response.text,
+    )
+    return [
+        {'url': feed[0], 'title': feed[1]}
+        for feed in feeds
+    ]

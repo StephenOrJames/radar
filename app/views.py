@@ -16,7 +16,8 @@ def airport(code):
     if data is None:
         return jsonify(status="Airport not found"), 404
     data["weather"] = utils.get_airport_weather(data["icao"])
-    return jsonify(status="Success", **data)
+    data["atc"] = utils.get_airport_atc(data["icao"])
+    return jsonify(**data)
 
 
 @app.route(

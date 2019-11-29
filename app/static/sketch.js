@@ -138,9 +138,10 @@ function mouseWheel(event) {
 
 function loadAirport(icao) {
   fetch("/airport/" + icao)
-  .then((response) => response.json())
-  .then(function (json) {
-    if (json.status === "Success") {
+  .then(async (response) => {
+    if (response.ok) {
+      const json = await response.json();
+      setAtcFeeds(json.atc);
       airport.icao = json.icao;
       airport.name = json.name;
       airport.latitude = json.coordinates.latitude;
@@ -160,9 +161,9 @@ function loadAircraft() {
     return;
   }
 
-  fetch("/aircraft/" + airport.latitude + "/" + airport.longitude + "/" + radar.distance)
+  fetch(`/aircraft/${airport.latitude}/${airport.longitude}/${radar.distance}`)
   .then((response) => response.json())
-  .then(function (json) {
+  .then((json) => {
     aircraft.next = json.aircraft;
   });
 }
@@ -176,4 +177,23 @@ function drawBlip(angle, distance) {
   rotate(angle);
   image(radar.blip, 0, distance);
   pop();
+}
+
+function setAtcFeeds(feeds) {
+  const list = document.querySelector('#atc');
+  list.innerHTML =
+    '<strong>ATC feeds by <a href="https://liveatc.net">LiveATC.net</a></strong>';
+
+  for (const feed of feeds) {
+    const text = document.createTextNode(feed.title);
+    const br = document.createElement('br');
+    const audio = document.createElement('audio');
+    audio.setAttribute('controls', '');
+    audio.setAttribute('src', feed.url);
+    const item = document.createElement('li');
+    item.appendChild(text);
+    item.appendChild(br);
+    item.appendChild(audio);
+    list.appendChild(item);
+  }
 }
